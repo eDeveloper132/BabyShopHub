@@ -1,3 +1,4 @@
+import 'package:application/Data/data.dart';
 import 'package:application/cart.dart';
 import 'package:application/orders.dart';
 import 'package:application/profile.dart';
@@ -16,10 +17,12 @@ void main() async {
 
   runApp(MyApp(isLoggedIn: isLoggedIn));
 }
+
 Future<bool> checkUserSession() async {
   final prefs = await SharedPreferences.getInstance();
   return prefs.getString('userId') != null;
 }
+
 class MyApp extends StatelessWidget {
   final bool isLoggedIn;
   const MyApp({super.key, required this.isLoggedIn});
@@ -51,11 +54,18 @@ class HomeScreen extends StatelessWidget {
   ];
 
   final List<Map<String, String>> trendingProducts = [
-    {'title': 'Baby Dress', 'image': '../assets/dress.jpg', 'price': 'Rs. 1200'},
+    {
+      'title': 'Baby Dress',
+      'image': '../assets/dress.jpg',
+      'price': 'Rs. 1200',
+    },
     {'title': 'Soft Toy', 'image': '../assets/toy.jpg', 'price': 'Rs. 800'},
-    {'title': 'Baby Shoes', 'image': '../assets/shoes.jpg', 'price': 'Rs. 1500'},
+    {
+      'title': 'Baby Shoes',
+      'image': '../assets/shoes.jpg',
+      'price': 'Rs. 1500',
+    },
   ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -85,18 +95,19 @@ class HomeScreen extends StatelessWidget {
                 enlargeCenterPage: true,
                 aspectRatio: 16 / 9,
               ),
-              items: bannerImages.map((image) {
-                return Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage(image),
-                      fit: BoxFit.cover,
-                    ),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                );
-              }).toList(),
+              items:
+                  bannerImages.map((image) {
+                    return Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        image: DecorationImage(
+                          image: AssetImage(image),
+                          fit: BoxFit.cover,
+                        ),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    );
+                  }).toList(),
             ),
 
             SizedBox(height: 20),
@@ -121,7 +132,10 @@ class HomeScreen extends StatelessWidget {
                   padding: EdgeInsets.symmetric(vertical: 12),
                 ),
                 icon: Icon(Icons.track_changes, color: Colors.white),
-                label: Text('Track Your Order', style: TextStyle(color: Colors.white, fontSize: 16)),
+                label: Text(
+                  'Track Your Order',
+                  style: TextStyle(color: Colors.white, fontSize: 16),
+                ),
                 onPressed: () {
                   // Navigate to order tracking screen
                 },
@@ -136,21 +150,39 @@ class HomeScreen extends StatelessWidget {
       bottomNavigationBar: BottomNavigationBar(
         selectedItemColor: Color(0xFFFFA7B3),
         unselectedItemColor: Colors.grey,
-        currentIndex: 2,
+        currentIndex: 0,
         onTap: (index) {
           if (index == 0) {
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomeScreen()));
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+            );
           } else if (index == 1) {
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => OrdersPage()));
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => OrdersPage()),
+            );
           } else if (index == 2) {
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => ProfilePage()));
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => ProfilePage()),
+            );
+          } else if (index == 3) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => DataScreen()),
+            );
           }
         },
 
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.shopping_bag), label: 'Orders'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_bag),
+            label: 'Orders',
+          ),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Data'),
         ],
       ),
     );
@@ -173,7 +205,10 @@ class HomeScreen extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         itemCount: categories.length,
         itemBuilder: (context, index) {
-          return _categoryItem(categories[index]['title']!, categories[index]['image']!);
+          return _categoryItem(
+            categories[index]['title']!,
+            categories[index]['image']!,
+          );
         },
       ),
     );
@@ -201,10 +236,7 @@ class HomeScreen extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 8),
       child: Column(
         children: [
-          CircleAvatar(
-            radius: 30,
-            backgroundImage: AssetImage(imagePath),
-          ),
+          CircleAvatar(radius: 30, backgroundImage: AssetImage(imagePath)),
           SizedBox(height: 5),
           Text(title, style: TextStyle(fontSize: 14)),
         ],
@@ -221,7 +253,11 @@ class HomeScreen extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(10),
           boxShadow: [
-            BoxShadow(color: Colors.grey.shade300, blurRadius: 5, spreadRadius: 2),
+            BoxShadow(
+              color: Colors.grey.shade300,
+              blurRadius: 5,
+              spreadRadius: 2,
+            ),
           ],
         ),
         child: Column(
@@ -229,7 +265,12 @@ class HomeScreen extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
-              child: Image.asset(imagePath, height: 100, width: 150, fit: BoxFit.cover),
+              child: Image.asset(
+                imagePath,
+                height: 100,
+                width: 150,
+                fit: BoxFit.cover,
+              ),
             ),
             Padding(
               padding: EdgeInsets.all(8),
@@ -238,7 +279,13 @@ class HomeScreen extends StatelessWidget {
                 children: [
                   Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
                   SizedBox(height: 5),
-                  Text(price, style: TextStyle(color: Color(0xFFFFA7B3), fontWeight: FontWeight.bold)),
+                  Text(
+                    price,
+                    style: TextStyle(
+                      color: Color(0xFFFFA7B3),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ],
               ),
             ),
