@@ -9,6 +9,19 @@ class DataScreen extends StatefulWidget {
 
 class _DataScreenState extends State<DataScreen> {
   List<dynamic> _data = []; // Store fetched data
+  String getSanityImageUrl(String ref) {
+    if (ref == null || ref.isEmpty) return ''; // Prevent crashes
+
+    // Extract image ID from the _ref field
+    final parts = ref.split('-');
+    if (parts.length < 4) return ''; // Ensure correct format
+
+    final imageId = parts[1]; // Extract image ID
+    final dimensions = parts[2]; // Extract width x height
+    final format = parts[3]; // Extract format (jpg, png, etc.)
+
+    return "https://cdn.sanity.io/images/wy0dryv4/production/$imageId-$dimensions.$format";
+  }
 
   @override
   void initState() {
@@ -17,18 +30,22 @@ class _DataScreenState extends State<DataScreen> {
   }
 
   // Fetch data from Next.js API
+  // Fetch data from Next.js API
   Future<void> _fetchData() async {
     try {
       final response = await http.get(
-        Uri.parse(
-          'https://cors-anywhere.herokuapp.com/https://baby-shop-hub-two.vercel.app/api/products',
-        ),
+        Uri.parse('https://baby-shop-hub-two.vercel.app/api/products'),
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> jsonData = json.decode(response.body);
+        print("Raw API Response: ${response.body}");
+
+        final List<dynamic> jsonData = json.decode(
+          response.body,
+        ); // ✅ Directly decode as a List
+
         setState(() {
-          _data = jsonData;
+          _data = jsonData; // ✅ Assign directly
         });
       } else {
         print('Failed to load data: ${response.statusCode}');
@@ -56,11 +73,18 @@ class _DataScreenState extends State<DataScreen> {
                     leading:
                         (item['images'] != null && item['images'].isNotEmpty)
                             ? Image.network(
-                              item['images'][0]['url'],
-                            ) // Adjust based on API response
-                            : Icon(Icons.image_not_supported), // Fallback icon
+                              getSanityImageUrl(
+                                item['images'][0]['asset']['_ref'],
+                              ),
+                              errorBuilder:
+                                  (context, error, stackTrace) =>
+                                      Icon(Icons.broken_image),
+                            )
+                            : Icon(Icons.image_not_supported),
                     title: Text(item['title'] ?? 'No title'),
-                    subtitle: Text('Price: Rs. ${item['price'] ?? 'N/A'}'),
+                    subtitle: Text(
+                      'Price: Rs. ${item['price']?.toString() ?? 'N/A'}',
+                    ),
                   );
                 },
               ),

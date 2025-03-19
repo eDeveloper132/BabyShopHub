@@ -26,6 +26,7 @@ Future<bool> checkUserSession() async {
 class MyApp extends StatelessWidget {
   final bool isLoggedIn;
   const MyApp({super.key, required this.isLoggedIn});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -46,13 +47,11 @@ class HomeScreen extends StatelessWidget {
     '../assets/banner2.jpg',
     '../assets/banner3.jpg',
   ];
-
   final List<Map<String, String>> categories = [
     {'title': 'Clothing', 'image': '../assets/clothing.jpg'},
     {'title': 'Toys', 'image': '../assets/toys.jpg'},
     {'title': 'Accessories', 'image': '../assets/accessories.jpg'},
   ];
-
   final List<Map<String, String>> trendingProducts = [
     {
       'title': 'Baby Dress',
@@ -109,21 +108,15 @@ class HomeScreen extends StatelessWidget {
                     );
                   }).toList(),
             ),
-
             SizedBox(height: 20),
-
             _sectionTitle('Categories'),
             SizedBox(height: 10),
             _buildCategoryList(),
-
             SizedBox(height: 20),
-
             _sectionTitle('Trending Products'),
             SizedBox(height: 10),
             _buildTrendingProducts(),
-
             SizedBox(height: 20),
-
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 16),
               child: ElevatedButton.icon(
@@ -141,12 +134,10 @@ class HomeScreen extends StatelessWidget {
                 },
               ),
             ),
-
             SizedBox(height: 20),
           ],
         ),
       ),
-
       bottomNavigationBar: BottomNavigationBar(
         selectedItemColor: Color(0xFFFFA7B3),
         unselectedItemColor: Colors.grey,
@@ -174,7 +165,6 @@ class HomeScreen extends StatelessWidget {
             );
           }
         },
-
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(
