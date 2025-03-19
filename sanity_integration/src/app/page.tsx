@@ -1,12 +1,12 @@
-import RedirectToStudio from "@/components/RedirectToStudio";
+// import RedirectToStudio from "@/components/RedirectToStudio";
 
-// import { getProducts } from "./api/products/products";
+import { getProducts } from "./api/products";
 
 export default async function Home() {
-  // const Data = await getProducts();
-  // console.log(Data);
-  return <RedirectToStudio />;
-  // return(
-  //   <></>
-  // )
+  const Data = await getProducts();
+  console.log(Data);
+  // return <RedirectToStudio />;
+  return(
+    <></>
+  )
 }
