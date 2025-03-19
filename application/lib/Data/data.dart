@@ -20,7 +20,9 @@ class _DataScreenState extends State<DataScreen> {
   Future<void> _fetchData() async {
     try {
       final response = await http.get(
-        Uri.parse('https://baby-shop-hub-two.vercel.app/api/products'),
+        Uri.parse(
+          'https://cors-anywhere.herokuapp.com/https://baby-shop-hub-two.vercel.app/api/products',
+        ),
       );
 
       if (response.statusCode == 200) {
