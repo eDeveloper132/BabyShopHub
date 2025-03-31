@@ -1,3 +1,4 @@
+import 'package:application/Types/Classes.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -8,29 +9,18 @@ class DataScreen extends StatefulWidget {
 }
 
 class _DataScreenState extends State<DataScreen> {
-  List<dynamic> _data = []; // Store fetched data
+  List<products> _data = [];
+
   String getSanityImageUrl(String ref) {
-    if (ref == null || ref.isEmpty) return ''; // Prevent crashes
-
-    // Extract image ID from the _ref field
+    if (ref == null || ref.isEmpty) return '';
     final parts = ref.split('-');
-    if (parts.length < 4) return ''; // Ensure correct format
-
-    final imageId = parts[1]; // Extract image ID
-    final dimensions = parts[2]; // Extract width x height
-    final format = parts[3]; // Extract format (jpg, png, etc.)
-
+    if (parts.length < 4) return '';
+    final imageId = parts[1];
+    final dimensions = parts[2];
+    final format = parts[3];
     return "https://cdn.sanity.io/images/wy0dryv4/production/$imageId-$dimensions.$format";
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _fetchData(); // Fetch data when the screen loads
-  }
-
-  // Fetch data from Next.js API
-  // Fetch data from Next.js API
   Future<void> _fetchData() async {
     try {
       final response = await http.get(
@@ -38,14 +28,9 @@ class _DataScreenState extends State<DataScreen> {
       );
 
       if (response.statusCode == 200) {
-        print("Raw API Response: ${response.body}");
-
-        final List<dynamic> jsonData = json.decode(
-          response.body,
-        ); // ✅ Directly decode as a List
-
+        final List<dynamic> jsonData = json.decode(response.body);
         setState(() {
-          _data = jsonData; // ✅ Assign directly
+          _data = jsonData.map((item) => products.fromJson(item)).toList();
         });
       } else {
         print('Failed to load data: ${response.statusCode}');
@@ -56,36 +41,41 @@ class _DataScreenState extends State<DataScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  Widget _buildProductTile(products product) {
+    return ListTile(
+      leading:
+          (product.images != null && product.images!.isNotEmpty)
+              ? Image.network(
+                getSanityImageUrl(product.images![0].asset!.sRef!),
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Center(child: CircularProgressIndicator());
+                },
+                errorBuilder:
+                    (context, error, stackTrace) => Icon(Icons.broken_image),
+              )
+              : Icon(Icons.image_not_supported),
+      title: Text(product.title ?? 'No title'),
+      subtitle: Text('Price: Rs. ${product.price?.toString() ?? 'N/A'}'),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('BabyShopHub')),
       body:
           _data.isEmpty
-              ? Center(
-                child: CircularProgressIndicator(),
-              ) // Show loader if data is empty
+              ? Center(child: CircularProgressIndicator())
               : ListView.builder(
                 itemCount: _data.length,
                 itemBuilder: (context, index) {
-                  var item = _data[index];
-
-                  return ListTile(
-                    leading:
-                        (item['images'] != null && item['images'].isNotEmpty)
-                            ? Image.network(
-                              getSanityImageUrl(
-                                item['images'][0]['asset']['_ref'],
-                              ),
-                              errorBuilder:
-                                  (context, error, stackTrace) =>
-                                      Icon(Icons.broken_image),
-                            )
-                            : Icon(Icons.image_not_supported),
-                    title: Text(item['title'] ?? 'No title'),
-                    subtitle: Text(
-                      'Price: Rs. ${item['price']?.toString() ?? 'N/A'}',
-                    ),
-                  );
+                  return _buildProductTile(_data[index]);
                 },
               ),
     );
