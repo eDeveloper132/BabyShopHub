@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getProducts, createProduct, updateProduct, deleteProduct } from "../../lib/sanity";
+import { getProducts, createProduct, updateProduct, deleteProduct, getProductById } from "../../lib/sanity";
 
 // ✅ CORS Headers (For Reusability)
 const corsHeaders = {
@@ -10,13 +10,24 @@ const corsHeaders = {
 };
 
 // 🟢 Handle GET request (Fetch all products)
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const products = await getProducts();
-    return NextResponse.json(products, { status: 200, headers: corsHeaders });
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+
+    if (id) {
+      const product = await getProductById(id);
+      if (!product) {
+        return NextResponse.json({ error: "Product not found" }, { status: 404, headers: corsHeaders });
+      }
+      return NextResponse.json(product, { status: 200, headers: corsHeaders });
+    } else {
+      const products = await getProducts();
+      return NextResponse.json(products, { status: 200, headers: corsHeaders });
+    }
   } catch (error) {
     console.error("Error fetching products:", error);
-    return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to fetch products" }, { status: 500, headers: corsHeaders });
   }
 }
 
