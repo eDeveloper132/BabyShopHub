@@ -1,5 +1,5 @@
 import { defineType, defineField } from 'sanity';
-
+import { client } from './lib/client';
 const productSchema = defineType({
   name: 'product',
   title: 'Product',
@@ -9,7 +9,20 @@ const productSchema = defineType({
       name: 'title',
       title: 'Title',
       type: 'string',
-      validation: (Rule) => Rule.required(), // Uses StringRule implicitly
+      validation: (Rule) =>
+        Rule.required().custom(async (title, context) => {
+          if (!title) return 'Title is required';
+
+          const { document } = context;
+
+          // Query to check for duplicate titles
+          const existingProducts = await client.fetch(
+            `*[_type == "product" && title == $title && _id != $id][0]`,
+            { title, id: document?._id }
+          );
+
+          return existingProducts ? 'Title must be unique' : true;
+        }),
     }),
     defineField({
       name: 'video',

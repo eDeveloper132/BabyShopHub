@@ -1,4 +1,5 @@
-import 'package:application/Data/data.dart';
+import 'package:application/Data/data.dart'; // Import ProductService
+import 'package:application/Types/Classes.dart';
 import 'package:application/cart.dart';
 import 'package:application/orders.dart';
 import 'package:application/profile.dart';
@@ -52,19 +53,19 @@ class HomeScreen extends StatelessWidget {
     {'title': 'Toys', 'image': '../assets/toys.jpg'},
     {'title': 'Accessories', 'image': '../assets/accessories.jpg'},
   ];
-  final List<Map<String, String>> trendingProducts = [
-    {
-      'title': 'Baby Dress',
-      'image': '../assets/dress.jpg',
-      'price': 'Rs. 1200',
-    },
-    {'title': 'Soft Toy', 'image': '../assets/toy.jpg', 'price': 'Rs. 800'},
-    {
-      'title': 'Baby Shoes',
-      'image': '../assets/shoes.jpg',
-      'price': 'Rs. 1500',
-    },
-  ];
+  // final List<Map<String, String>> trendingProducts = [
+  //   {
+  //     'title': 'Baby Dress',
+  //     'image': '../assets/dress.jpg',
+  //     'price': 'Rs. 1200',
+  //   },
+  //   {'title': 'Soft Toy', 'image': '../assets/toy.jpg', 'price': 'Rs. 800'},
+  //   {
+  //     'title': 'Baby Shoes',
+  //     'image': '../assets/shoes.jpg',
+  //     'price': 'Rs. 1500',
+  //   },
+  // ];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -115,7 +116,24 @@ class HomeScreen extends StatelessWidget {
             SizedBox(height: 20),
             _sectionTitle('Trending Products'),
             SizedBox(height: 10),
-            _buildTrendingProducts(),
+            // Use FutureBuilder to fetch and display trending products
+            FutureBuilder<List<products>>(
+              future: ProductService.fetchProducts(), // Fetch products here
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                } else if (snapshot.hasData) {
+                  final trendingProducts = snapshot.data!;
+                  return _buildTrendingProducts(
+                    trendingProducts,
+                  ); // Pass fetched products
+                } else {
+                  return Center(child: Text('No products available.'));
+                }
+              },
+            ),
             SizedBox(height: 20),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 16),
@@ -158,11 +176,6 @@ class HomeScreen extends StatelessWidget {
               context,
               MaterialPageRoute(builder: (context) => ProfilePage()),
             );
-          } else if (index == 3) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => DataScreen()),
-            );
           }
         },
         items: [
@@ -172,7 +185,6 @@ class HomeScreen extends StatelessWidget {
             label: 'Orders',
           ),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Data'),
         ],
       ),
     );
@@ -204,17 +216,18 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTrendingProducts() {
+  Widget _buildTrendingProducts(List<products> products) {
     return Container(
       height: 200,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: trendingProducts.length,
+        itemCount: products.length,
         itemBuilder: (context, index) {
+          final product = products[index];
           return _productCard(
-            trendingProducts[index]['title']!,
-            trendingProducts[index]['image']!,
-            trendingProducts[index]['price']!,
+            product.title ?? 'No Title',
+            ProductService.getSanityImageUrl(product.images![0].asset!.sRef!),
+            'Rs. ${product.price ?? 'N/A'}',
           );
         },
       ),
