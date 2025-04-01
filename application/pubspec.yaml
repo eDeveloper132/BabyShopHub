@@ -43,6 +43,7 @@ dependencies:
   sanity_client: ^1.8.4
   cached_network_image: ^3.4.1
   flutter_cache_manager: ^3.4.1
+  provider: ^6.1.4
 dev_dependencies:
   flutter_test:
     sdk: flutter

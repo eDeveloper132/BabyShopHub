@@ -1,4 +1,8 @@
-import 'package:application/Data/data.dart'; // Import ProductService
+import 'package:application/Providers/provider.dart'; // Import ProductService
+import 'package:application/Providers/singleProvider.dart';
+import 'package:application/product_detail.dart';
+import 'package:provider/provider.dart';
+import 'Providers/singleProvider.dart'; // Import provider
 import 'package:application/Types/Classes.dart';
 import 'package:application/cart.dart';
 import 'package:application/orders.dart';
@@ -16,7 +20,14 @@ void main() async {
 
   bool isLoggedIn = await checkUserSession();
 
-  runApp(MyApp(isLoggedIn: isLoggedIn));
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => SingleServiceProvider()),
+      ],
+      child: MyApp(isLoggedIn: isLoggedIn),
+    ),
+  );
 }
 
 Future<bool> checkUserSession() async {
@@ -216,18 +227,36 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTrendingProducts(List<products> products) {
+  Widget _buildTrendingProducts(List<products> trendingProducts) {
     return Container(
       height: 200,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: products.length,
+        itemCount: trendingProducts.length,
         itemBuilder: (context, index) {
-          final product = products[index];
-          return _productCard(
-            product.title ?? 'No Title',
-            ProductService.getSanityImageUrl(product.images![0].asset!.sRef!),
-            'Rs. ${product.price ?? 'N/A'}',
+          final product = trendingProducts[index];
+          return GestureDetector(
+            onTap: () {
+              // Set selected product id (using sId as the identifier)
+              Provider.of<SingleServiceProvider>(
+                context,
+                listen: false,
+              ).setSelectedProductId(product.sId ?? '');
+              // Navigate to product detail screen
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ProductDetailScreen()),
+              );
+            },
+            child: _productCard(
+              product.title ?? 'No Title',
+              ProductService.getSanityImageUrl(
+                (product.images != null && product.images!.isNotEmpty)
+                    ? product.images![0].asset!.sRef!
+                    : '',
+              ),
+              'Rs. ${product.price?.toString() ?? 'N/A'}',
+            ),
           );
         },
       ),
