@@ -10,7 +10,22 @@ export type Product = {
   description: string;
   price: number;
 };
-
+export type UserProfile = {
+  _id?: string; // Optional Sanity document ID
+  email: string;
+  username?: string;
+  address?: string;
+  postalCode?: string;
+  phoneNumber?: string;
+  dateOfBirth?: string;
+  profileImage?: { asset: { _ref: string } };
+  pastOrders?: {
+    orderId: string;
+    orderDate: string;
+    totalAmount: number;
+    status: "pending" | "completed" | "cancelled";
+  }[];
+};
 // 🟢 Fetch all products
 export async function getProducts(): Promise<Product[]> {
   // Directly return the promise from client.fetch
@@ -37,5 +52,29 @@ export async function updateProduct(id: string, data: Partial<Product>): Promise
 
 // 🟢 Delete a product by ID
 export async function deleteProduct(id: string): Promise<Product> {
+  return client.delete(id);
+}
+export async function getProfile(email: string): Promise<UserProfile | null> {
+  return client.fetch(
+    groq`*[_type == "userProfile" && email == $email][0]`,
+    { email }
+  );
+}
+
+// 🟢 Create a new user profile
+export async function createProfile(data: UserProfile): Promise<UserProfile> {
+  return client.create({
+    _type: "userProfile",
+    ...data,
+  });
+}
+
+// 🟢 Update a user profile by ID
+export async function updateProfile(id: string, data: Partial<UserProfile>): Promise<UserProfile> {
+  return client.patch(id).set(data).commit();
+}
+
+// 🟢 Delete a user profile by ID
+export async function deleteProfile(id: string): Promise<UserProfile> {
   return client.delete(id);
 }
