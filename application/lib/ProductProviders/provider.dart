@@ -1,4 +1,4 @@
-import 'package:application/Types/Classes.dart';
+import 'package:application/Types/Product_Type.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -26,7 +26,7 @@ class ProductService {
 
   // Utility function to get product image URL
   static String getSanityImageUrl(String ref) {
-    if (ref == null || ref.isEmpty) return '';
+    if (ref.isEmpty) return '';
     final parts = ref.split('-');
     if (parts.length < 4) return '';
     final imageId = parts[1];

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../Providers/singleProvider.dart';
-import '../Providers/provider.dart';
-import '../Types/Classes.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import 'ProductProviders/singleProvider.dart';
+import 'ProductProviders/provider.dart';
+import '../Types/Product_Type.dart';
+import '../cart.dart';
 
 class ProductDetailScreen extends StatelessWidget {
   @override
@@ -60,6 +63,29 @@ class ProductDetailScreen extends StatelessWidget {
                     product.description ?? '',
                     style: TextStyle(fontSize: 16),
                   ),
+                  SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () async {
+                      await saveProductToSharedPreferences(product!);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ShoppingCartPage(),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                      padding: EdgeInsets.symmetric(
+                        vertical: 12,
+                        horizontal: 20,
+                      ),
+                    ),
+                    child: Text(
+                      "Add to Cart & Checkout",
+                      style: TextStyle(fontSize: 16, color: Colors.white),
+                    ),
+                  ),
                 ],
               ),
             );
@@ -69,5 +95,35 @@ class ProductDetailScreen extends StatelessWidget {
         },
       ),
     );
+  }
+
+  Future<void> saveProductToSharedPreferences(products product) async {
+    final prefs = await SharedPreferences.getInstance();
+    // Get existing list, if any.
+    final String? existingJson = prefs.getString('cart_product');
+    List<dynamic> productList = [];
+    if (existingJson != null) {
+      var decoded = jsonDecode(existingJson);
+      if (decoded is List) {
+        productList = decoded;
+      } else if (decoded is Map) {
+        productList = [decoded];
+      }
+    }
+    // Create a new product map.
+    Map<String, dynamic> productMap = {
+      'sId': product.sId,
+      'title': product.title,
+      'price': product.price,
+      'description': product.description,
+      'image':
+          (product.images != null && product.images!.isNotEmpty)
+              ? product.images![0].asset!.sRef
+              : '',
+      'quantity': 1,
+    };
+    productList.add(productMap);
+    await prefs.setString('cart_product', jsonEncode(productList));
+    print('Product saved to SharedPreferences as list of objects');
   }
 }

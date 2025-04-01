@@ -1,12 +1,12 @@
-import 'package:application/Providers/provider.dart'; // Import ProductService
-import 'package:application/Providers/singleProvider.dart';
+import 'package:application/ProductProviders/provider.dart'; // Import ProductService
+import 'package:application/ProductProviders/singleProvider.dart';
+import 'package:application/ProfileProviders/provider_pro.dart';
 import 'package:application/product_detail.dart';
+import 'package:application/profile.dart';
 import 'package:provider/provider.dart';
-import 'Providers/singleProvider.dart'; // Import provider
-import 'package:application/Types/Classes.dart';
+import 'package:application/Types/Product_Type.dart';
 import 'package:application/cart.dart';
 import 'package:application/orders.dart';
-import 'package:application/profile.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -24,6 +24,9 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => SingleServiceProvider()),
+        ChangeNotifierProvider(
+          create: (context) => ProfileService(),
+        ), // Add this
       ],
       child: MyApp(isLoggedIn: isLoggedIn),
     ),
@@ -87,7 +90,7 @@ class HomeScreen extends StatelessWidget {
           IconButton(
             icon: Icon(Icons.shopping_cart),
             onPressed: () {
-              Navigator.pushReplacement(
+              Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => ShoppingCartPage()),
               );
@@ -173,17 +176,14 @@ class HomeScreen extends StatelessWidget {
         currentIndex: 0,
         onTap: (index) {
           if (index == 0) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => HomeScreen()),
-            );
+            (context as Element).reassemble();
           } else if (index == 1) {
-            Navigator.pushReplacement(
+            Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => OrdersPage()),
             );
           } else if (index == 2) {
-            Navigator.pushReplacement(
+            Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => ProfilePage()),
             );
