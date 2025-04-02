@@ -52,6 +52,7 @@ export async function POST(req: Request) {
 // 🟢 Handle PUT request (Update user profile)
 export async function PUT(req: Request) {
   try {
+    console.log("Request body:", req.body);
     const { id, ...data } = await req.json();
 
     // ✅ Ensure ID is provided
