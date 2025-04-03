@@ -127,7 +127,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   ),
                   SizedBox(height: 10),
                   Text(
-                    "Price: Rs. \${product.price?.toString() ?? 'N/A'}",
+                    "Price: Rs. " + product.price.toString() ?? 'No Price',
                     style: TextStyle(fontSize: 18, color: Colors.green),
                   ),
                   SizedBox(height: 20),
