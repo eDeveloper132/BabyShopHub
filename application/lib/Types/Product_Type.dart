@@ -1,4 +1,4 @@
-class products {
+class Products {
   String? sCreatedAt;
   String? sRev;
   String? description;
@@ -10,7 +10,7 @@ class products {
   List<Images>? images;
   int? price;
 
-  products({
+  Products({
     this.sCreatedAt,
     this.sRev,
     this.description,
@@ -23,7 +23,7 @@ class products {
     this.price,
   });
 
-  products.fromJson(Map<String, dynamic> json) {
+  Products.fromJson(Map<String, dynamic> json) {
     sCreatedAt = json['_createdAt'];
     sRev = json['_rev'];
     description = json['description'];

@@ -8,13 +8,13 @@ class ProductService {
       'https://baby-shop-hub-two.vercel.app/api/products';
 
   // Fetch products data from the API
-  static Future<List<products>> fetchProducts() async {
+  static Future<List<Products>> fetchProducts() async {
     try {
       final response = await http.get(Uri.parse(_apiUrl));
 
       if (response.statusCode == 200) {
         final List<dynamic> jsonData = json.decode(response.body);
-        return jsonData.map((item) => products.fromJson(item)).toList();
+        return jsonData.map((item) => Products.fromJson(item)).toList();
       } else {
         throw Exception('Failed to load products: ${response.statusCode}');
       }

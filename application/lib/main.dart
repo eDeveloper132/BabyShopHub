@@ -132,7 +132,7 @@ class HomeScreen extends StatelessWidget {
             _sectionTitle('Trending Products'),
             SizedBox(height: 10),
             // Use FutureBuilder to fetch and display trending products
-            FutureBuilder<List<products>>(
+            FutureBuilder<List<Products>>(
               future: ProductService.fetchProducts(), // Fetch products here
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -228,7 +228,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTrendingProducts(List<products> trendingProducts) {
+  Widget _buildTrendingProducts(List<Products> trendingProducts) {
     return Container(
       height: 200,
       child: ListView.builder(

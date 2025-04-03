@@ -22,7 +22,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text("Product Details")),
-      body: FutureBuilder<List<products>>(
+      body: FutureBuilder<List<Products>>(
         future: ProductService.fetchProducts(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -30,7 +30,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: \${snapshot.error}'));
           } else if (snapshot.hasData) {
-            products? product = snapshot.data?.firstWhere(
+            Products? product = snapshot.data?.firstWhere(
               (p) => p.sId == productId,
             );
             if (product == null) {
@@ -172,7 +172,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  Future<void> saveProductToSharedPreferences(products product) async {
+  Future<void> saveProductToSharedPreferences(Products product) async {
     final prefs = await SharedPreferences.getInstance();
     final String? existingJson = prefs.getString('cart_product');
     List<dynamic> productList =
