@@ -11,6 +11,7 @@ class Profiles {
   String? phoneNumber;
   String? sCreatedAt;
   List<PastOrders>? pastOrders;
+  CurrentOrder? currentOrder;
   String? sId;
 
   Profiles({
@@ -26,6 +27,7 @@ class Profiles {
     this.phoneNumber,
     this.sCreatedAt,
     this.pastOrders,
+    this.currentOrder,
     this.sId,
   });
 
@@ -37,7 +39,7 @@ class Profiles {
     dateOfBirth = json['dateOfBirth'];
     profileImage =
         json['profileImage'] != null
-            ? new ProfileImage.fromJson(json['profileImage'])
+            ? ProfileImage.fromJson(json['profileImage'])
             : null;
     sUpdatedAt = json['_updatedAt'];
     postalCode = json['postalCode'];
@@ -47,14 +49,18 @@ class Profiles {
     if (json['pastOrders'] != null) {
       pastOrders = <PastOrders>[];
       json['pastOrders'].forEach((v) {
-        pastOrders!.add(new PastOrders.fromJson(v));
+        pastOrders!.add(PastOrders.fromJson(v));
       });
     }
+    currentOrder =
+        json['currentOrder'] != null
+            ? CurrentOrder.fromJson(json['currentOrder'])
+            : null;
     sId = json['_id'];
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
+    final Map<String, dynamic> data = Map<String, dynamic>();
     data['email'] = this.email;
     data['username'] = this.username;
     data['address'] = this.address;
@@ -71,6 +77,9 @@ class Profiles {
     if (this.pastOrders != null) {
       data['pastOrders'] = this.pastOrders!.map((v) => v.toJson()).toList();
     }
+    if (this.currentOrder != null) {
+      data['currentOrder'] = this.currentOrder!.toJson();
+    }
     data['_id'] = this.sId;
     return data;
   }
@@ -83,12 +92,12 @@ class ProfileImage {
   ProfileImage({this.asset, this.sType});
 
   ProfileImage.fromJson(Map<String, dynamic> json) {
-    asset = json['asset'] != null ? new Asset.fromJson(json['asset']) : null;
+    asset = json['asset'] != null ? Asset.fromJson(json['asset']) : null;
     sType = json['_type'];
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
+    final Map<String, dynamic> data = Map<String, dynamic>();
     if (this.asset != null) {
       data['asset'] = this.asset!.toJson();
     }
@@ -109,7 +118,7 @@ class Asset {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
+    final Map<String, dynamic> data = Map<String, dynamic>();
     data['_ref'] = this.sRef;
     data['_type'] = this.sType;
     return data;
@@ -140,12 +149,81 @@ class PastOrders {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
+    final Map<String, dynamic> data = Map<String, dynamic>();
     data['totalAmount'] = this.totalAmount;
     data['orderId'] = this.orderId;
     data['_key'] = this.sKey;
     data['orderDate'] = this.orderDate;
     data['status'] = this.status;
+    return data;
+  }
+}
+
+class ProductReference {
+  String? sRef;
+  String? sType;
+
+  ProductReference({this.sRef, this.sType});
+
+  ProductReference.fromJson(Map<String, dynamic> json) {
+    sRef = json['_ref'];
+    sType = json['_type'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = Map<String, dynamic>();
+    data['_ref'] = this.sRef;
+    data['_type'] = this.sType;
+    return data;
+  }
+}
+
+class OrderItem {
+  String? sKey;
+  ProductReference? product;
+  int? quantity;
+
+  OrderItem({this.sKey, this.product, this.quantity});
+
+  OrderItem.fromJson(Map<String, dynamic> json) {
+    sKey = json['_key'];
+    product =
+        json['product'] != null
+            ? ProductReference.fromJson(json['product'])
+            : null;
+    quantity = json['quantity'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = Map<String, dynamic>();
+    data['_key'] = this.sKey;
+    if (this.product != null) {
+      data['product'] = this.product!.toJson();
+    }
+    data['quantity'] = this.quantity;
+    return data;
+  }
+}
+
+class CurrentOrder {
+  List<OrderItem>? items;
+
+  CurrentOrder({this.items});
+
+  CurrentOrder.fromJson(Map<String, dynamic> json) {
+    if (json['items'] != null) {
+      items = <OrderItem>[];
+      json['items'].forEach((v) {
+        items!.add(OrderItem.fromJson(v));
+      });
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = Map<String, dynamic>();
+    if (this.items != null) {
+      data['items'] = this.items!.map((v) => v.toJson()).toList();
+    }
     return data;
   }
 }

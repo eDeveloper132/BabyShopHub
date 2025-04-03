@@ -24,6 +24,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => SingleServiceProvider()),
+        ChangeNotifierProvider(create: (context) => ProfileService()),
         ChangeNotifierProvider(
           create: (context) => ProfileService(),
         ), // Add this
@@ -237,12 +238,10 @@ class HomeScreen extends StatelessWidget {
           final product = trendingProducts[index];
           return GestureDetector(
             onTap: () {
-              // Set selected product id (using sId as the identifier)
               Provider.of<SingleServiceProvider>(
                 context,
                 listen: false,
               ).setSelectedProductId(product.sId ?? '');
-              // Navigate to product detail screen
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => ProductDetailScreen()),
@@ -297,11 +296,26 @@ class HomeScreen extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
-              child: Image.asset(
+              child: Image.network(
                 imagePath,
                 height: 100,
                 width: 150,
                 fit: BoxFit.cover,
+                errorBuilder:
+                    (context, error, stackTrace) => Container(
+                      height: 100,
+                      width: 150,
+                      color: Colors.grey.shade200,
+                      child: Icon(Icons.error, color: Colors.red),
+                    ),
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Container(
+                    height: 100,
+                    width: 150,
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                },
               ),
             ),
             Padding(

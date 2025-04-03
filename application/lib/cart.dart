@@ -1,6 +1,11 @@
+import 'package:application/ProductProviders/provider.dart';
+import 'package:application/ProfileProviders/provider_pro.dart';
+import 'package:application/Types/Profile_Type.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'package:provider/provider.dart';
+import 'ProfileProviders/provider_pro.dart'; // Adjust path
 
 class ShoppingCartPage extends StatefulWidget {
   @override
@@ -16,7 +21,7 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
     _loadCartItems();
   }
 
-  // Load the cart items from SharedPreferences.
+  // Load cart items from SharedPreferences
   Future<void> _loadCartItems() async {
     final prefs = await SharedPreferences.getInstance();
     final String? cartProductJson = prefs.getString('cart_product');
@@ -34,7 +39,6 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
               }).toList();
         });
       } else if (decoded is Map) {
-        // If only one product is stored as a Map, convert it into a List.
         setState(() {
           cartItems = [
             Map<String, dynamic>.from(decoded)
@@ -45,14 +49,14 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
     }
   }
 
-  // Save the current list of cart items back into SharedPreferences.
+  // Save cart items to SharedPreferences
   Future<void> _saveCartItems() async {
     final prefs = await SharedPreferences.getInstance();
     String jsonStr = jsonEncode(cartItems);
     await prefs.setString('cart_product', jsonStr);
   }
 
-  // Calculate the total price based on (unitPrice * quantity) for each item.
+  // Calculate total price
   double _calculateTotal() {
     return cartItems.fold(0.0, (sum, item) {
       double unitPrice = (item['price'] as num).toDouble();
@@ -61,7 +65,7 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
     });
   }
 
-  // Increase the quantity for the item at [index] and update storage.
+  // Increment item quantity
   void _incrementQuantity(int index) {
     setState(() {
       cartItems[index]['quantity'] = (cartItems[index]['quantity'] as int) + 1;
@@ -69,7 +73,7 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
     _saveCartItems();
   }
 
-  // Decrease the quantity for the item at [index] (not going below 1) and update storage.
+  // Decrement item quantity
   void _decrementQuantity(int index) {
     int currentQty = cartItems[index]['quantity'] as int;
     if (currentQty > 1) {
@@ -80,12 +84,112 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
     }
   }
 
-  // Remove an item at [index] and update storage.
+  // Remove item from cart
   void _removeItem(int index) async {
     setState(() {
       cartItems.removeAt(index);
     });
     await _saveCartItems();
+  }
+
+  // Checkout process with payment simulation
+  Future<void> _checkout() async {
+    // Step 1: Validate cart
+    if (cartItems.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Your cart is empty')));
+      return;
+    }
+
+    // Step 2: Show payment confirmation dialog
+    bool? confirm = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text('Confirm Payment'),
+            content: Text(
+              'Proceed with payment of Rs. ${_calculateTotal().toStringAsFixed(2)}?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: Text('Confirm'),
+              ),
+            ],
+          ),
+    );
+
+    if (confirm != true) return;
+
+    // Step 3: Simulate payment processing
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Processing payment...')));
+    await Future.delayed(Duration(seconds: 2)); // Simulate network delay
+
+    // Step 4: Get user email
+    final prefs = await SharedPreferences.getInstance();
+    final email = prefs.getString('userId');
+    if (email == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('User not logged in')));
+      return;
+    }
+
+    // Step 5: Fetch user profile
+    final profileService = Provider.of<ProfileService>(context, listen: false);
+    Profiles? profile;
+    try {
+      profile = await profileService.fetchProfile(email);
+      if (profile == null) throw Exception('Profile not found');
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to load profile: $e')));
+      return;
+    }
+
+    // Step 6: Create new order
+    final newOrder = PastOrders(
+      orderId: DateTime.now().millisecondsSinceEpoch.toString(),
+      orderDate: DateTime.now().toIso8601String(),
+      totalAmount: _calculateTotal().toInt(),
+      status: 'completed',
+    );
+
+    // Step 7: Update pastOrders
+    final updatedPastOrders =
+        profile.pastOrders != null
+            ? [...profile.pastOrders!, newOrder]
+            : [newOrder];
+
+    // Step 8: Update profile with new order
+    try {
+      await profileService.updateProfile(profile.sId!, {
+        'pastOrders': updatedPastOrders.map((order) => order.toJson()).toList(),
+      });
+
+      // Step 9: Clear cart
+      setState(() {
+        cartItems.clear();
+      });
+      await _saveCartItems();
+
+      // Step 10: Show success message
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Order placed successfully')));
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to place order: $e')));
+    }
   }
 
   @override
@@ -108,11 +212,19 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
     );
   }
 
-  // Build each cart item with image, title, computed total, quantity controls and a delete button.
   Widget _buildCartItem(Map<String, dynamic> item, int index) {
     int quantity = item['quantity'] as int;
     double unitPrice = (item['price'] as num).toDouble();
     double itemTotal = unitPrice * quantity;
+    String getImageRef(Map<String, dynamic> item) {
+      if (item['image'] != null) {
+        return item['image'];
+      }
+      if (item['images'] != null && item['images'].isNotEmpty) {
+        return item['images'][0]['asset']['sRef'];
+      }
+      return '';
+    }
 
     return Card(
       margin: const EdgeInsets.all(8.0),
@@ -120,7 +232,7 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
         leading: ClipRRect(
           borderRadius: BorderRadius.circular(8.0),
           child: Image.network(
-            item['image'],
+            ProductService.getSanityImageUrl(getImageRef(item)),
             width: 60,
             height: 60,
             fit: BoxFit.cover,
@@ -166,15 +278,12 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
         ),
         trailing: IconButton(
           icon: const Icon(Icons.delete, color: Colors.red),
-          onPressed: () {
-            _removeItem(index);
-          },
+          onPressed: () => _removeItem(index),
         ),
       ),
     );
   }
 
-  // Build the bottom bar that shows the total and a checkout button.
   Widget _buildBottomBar() {
     return Container(
       padding: const EdgeInsets.all(16.0),
@@ -201,9 +310,7 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
             ],
           ),
           ElevatedButton(
-            onPressed: () {
-              // Implement checkout logic if needed.
-            },
+            onPressed: _checkout,
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.orange,
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),

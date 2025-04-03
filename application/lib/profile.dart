@@ -300,19 +300,38 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Future<void> _updateProfile() async {
     if (_formKey.currentState?.validate() != true) return;
 
+    if (widget.profile.sId == null || widget.profile.sId!.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Profile ID is missing')));
+      return;
+    }
+
+    final updates = <String, dynamic>{};
+    if (_usernameController.text.isNotEmpty)
+      updates['username'] = _usernameController.text;
+    if (_addressController.text.isNotEmpty)
+      updates['address'] = _addressController.text;
+    if (_emailController.text.isNotEmpty)
+      updates['email'] = _emailController.text;
+    if (_postalCodeController.text.isNotEmpty)
+      updates['postalCode'] = _postalCodeController.text;
+    if (_phoneNumberController.text.isNotEmpty)
+      updates['phoneNumber'] = _phoneNumberController.text;
+    if (_dateOfBirthController.text.isNotEmpty)
+      updates['dateOfBirth'] = _dateOfBirthController.text;
+
     try {
-      await Provider.of<ProfileService>(context, listen: false).updateProfile(
-        id: widget.profile.sId ?? '', // Use sId from your Profiles class
-        username: _usernameController.text,
-        address: _addressController.text,
-        email: _emailController.text,
-        postalCode: _postalCodeController.text,
-        phoneNumber: _phoneNumberController.text,
-        dateOfBirth: _dateOfBirthController.text,
-        // If you have a field for profileImage, pass it here.
+      print(
+        'DEBUG: Updating profile with ID: ${widget.profile.sId}, Updates: $updates',
       );
-      Navigator.pop(context); // Return to the profile page.
+      await Provider.of<ProfileService>(
+        context,
+        listen: false,
+      ).updateProfile(widget.profile.sId!, updates);
+      Navigator.pop(context); // Return to the profile page
     } catch (e) {
+      print('DEBUG: Error updating profile: $e');
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error updating profile: $e')));
