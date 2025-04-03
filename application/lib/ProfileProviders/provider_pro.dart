@@ -42,6 +42,40 @@ class ProfileService with ChangeNotifier {
     return null;
   }
 
+  Future<Profiles> createProfile(Map<String, dynamic> profileData) async {
+    final url = Uri.parse('https://baby-shop-hub-two.vercel.app/api/profiles');
+    try {
+      // Log the data being sent for debugging
+      print('Creating profile with data: $profileData');
+
+      // Send POST request to the API endpoint
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: json.encode(profileData),
+      );
+
+      // Log response details for debugging
+      print('Response status code: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      // Check if the profile was created successfully (status code 201)
+      if (response.statusCode == 201) {
+        final data = json.decode(response.body);
+        _profile = Profiles.fromJson(data);
+        print('Profile created successfully: ${_profile?.toJson()}');
+        notifyListeners();
+        return _profile!;
+      } else {
+        throw Exception('Failed to create profile: ${response.statusCode}');
+      }
+    } catch (error) {
+      // Log and rethrow the error for handling by the caller
+      print('Error creating profile: $error');
+      throw Exception('Error creating profile: $error');
+    }
+  }
+
   // skZjFo4yR7eAYY4UEIkJW1Dv0ldN2MtxXrO2x6Le2rwlILBz3j4mPsul5M8pZ2z85CLNibErOOKTq3kfof0ZNYanXYINw9O4Ep7alebTitTSjxTioHa4qRtUbG8m9aEURCHf2dzmIUr17heQnrU7xP66Pn6Rw7uXrc3AQGXhf12TX7i66kJj
   Future<void> updateProfile(String id, Map<String, dynamic> updates) async {
     final url = Uri.parse('https://baby-shop-hub-two.vercel.app/api/profiles');

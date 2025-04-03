@@ -1,8 +1,10 @@
-import 'package:application/main.dart';
+import 'package:application/main.dart'; // Ensure HomeScreen is accessible
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
+import '../ProfileProviders/provider_pro.dart'; // Adjust path to ProfileService
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({Key? key}) : super(key: key);
@@ -33,7 +35,12 @@ class _AuthScreenState extends State<AuthScreen> {
     String password = _passwordController.text.trim();
     String confirmPassword = _confirmPasswordController.text.trim();
 
-    if (!_isLogin && (fullName.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty)) {
+    // Input validation
+    if (!_isLogin &&
+        (fullName.isEmpty ||
+            email.isEmpty ||
+            password.isEmpty ||
+            confirmPassword.isEmpty)) {
       _showError('Please fill all fields');
       return;
     }
@@ -47,23 +54,48 @@ class _AuthScreenState extends State<AuthScreen> {
     }
 
     try {
+      // Access ProfileService via Provider
+      final profileService = Provider.of<ProfileService>(
+        context,
+        listen: false,
+      );
+
       if (_isLogin) {
+        // Login flow
         var uuid = Uuid();
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('userId', email);
         await prefs.setString('token', uuid.v4());
 
-        await _auth.signInWithEmailAndPassword(email: email, password: password);
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomeScreen()));
+        await _auth.signInWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
+        // await profileService.fetchProfile(email); // Fetch profile after login
+        // Navigator.pushReplacement(
+        //   context,
+        //   MaterialPageRoute(builder: (context) => HomeScreen()),
+        // );
         _showSuccess('Login Successful!');
       } else {
-        UserCredential userCredential = await _auth.createUserWithEmailAndPassword(email: email, password: password);
+        // Registration flow
+        UserCredential userCredential = await _auth
+            .createUserWithEmailAndPassword(email: email, password: password);
         User? user = userCredential.user;
         if (user != null) {
           await user.updateDisplayName(fullName);
           await user.reload();
 
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomeScreen()));
+          // Create profile data
+          // final profileData = {'email': email, 'username': fullName};
+          // await profileService.createProfile(
+          //   profileData,
+          // ); // Create profile in backend
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => HomeScreen()),
+          );
           _showSuccess('Registration Successful!');
         }
       }
@@ -75,15 +107,15 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error: $message')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Error: $message')));
   }
 
   void _showSuccess(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -98,7 +130,10 @@ class _AuthScreenState extends State<AuthScreen> {
             children: [
               Text(
                 _isLogin ? 'Welcome to BabyShopHub' : 'Create an Account',
-                style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 20),
               if (!_isLogin)
@@ -146,7 +181,10 @@ class _AuthScreenState extends State<AuthScreen> {
                 onPressed: _submitAuthForm,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: pinkColor,
-                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 40,
+                    vertical: 15,
+                  ),
                 ),
                 child: Text(
                   _isLogin ? 'Login' : 'Register',
@@ -156,7 +194,9 @@ class _AuthScreenState extends State<AuthScreen> {
               TextButton(
                 onPressed: _toggleAuthMode,
                 child: Text(
-                  _isLogin ? 'Create an Account' : 'Already have an account? Login',
+                  _isLogin
+                      ? 'Create an Account'
+                      : 'Already have an account? Login',
                   style: TextStyle(color: pinkColor),
                 ),
               ),
