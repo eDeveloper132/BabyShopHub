@@ -72,10 +72,11 @@ class _AuthScreenState extends State<AuthScreen> {
           password: password,
         );
         // await profileService.fetchProfile(email); // Fetch profile after login
-        // Navigator.pushReplacement(
-        //   context,
-        //   MaterialPageRoute(builder: (context) => HomeScreen()),
-        // );
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomeScreen()),
+        );
         _showSuccess('Login Successful!');
       } else {
         // Registration flow
