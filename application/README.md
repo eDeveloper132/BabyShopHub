@@ -1,3 +1,6 @@
+# Execution
+use this launch command to launch application : flutter run -d chrome --web-port=55370
+
 # application
 
 A new Flutter project.
@@ -14,4 +17,3 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
-use this launch command : flutter run -d chrome --web-port=55370
