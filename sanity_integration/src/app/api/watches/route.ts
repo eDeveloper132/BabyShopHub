@@ -9,7 +9,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type",
 };
 
-// 🟢 Handle GET request (Fetch all products)
+// 🟢 Handle GET request (Fetch all products) 
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
