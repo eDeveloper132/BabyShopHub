@@ -1,59 +1,59 @@
 import { client } from "@/sanity/lib/client";
 import { groq } from "next-sanity";
+import { All } from "../types/All";
+import { UserProfile } from "../types/UserProfile";
 
-// Define a TypeScript type for a Product
-export type All = {
-  _id?: string; // Optional Sanity document ID
-  title: string;
-  video: { asset: { _ref: string } }; // Reference to a Sanity file
-  images: { asset: { _ref: string } }[]; // Array of image references
-  description: string;
-  price: number;
-};
-export type UserProfile = {
-  _id?: string; // Optional Sanity document ID
-  email: string;
-  username?: string;
-  address?: string;
-  postalCode?: string;
-  phoneNumber?: string;
-  dateOfBirth?: string;
-  profileImage?: { asset: { _ref: string } };
-  pastOrders?: {
-    orderId: string;
-    orderDate: string;
-    totalAmount: number;
-    status: "pending" | "completed" | "cancelled";
-  }[];
-};
 // 🟢 Fetch all products
 export async function getShoes(): Promise<All[]> {
   // Directly return the promise from client.fetch
-  return client.fetch(groq`*[_type == "product"]`);
+  return client.fetch(groq`*[_type == "shoes"]`);
 }
 
 // 🟢 Fetch a single product by ID
 export async function getShoeById(id: string): Promise<All | null> {
-  return client.fetch(groq`*[_type == "product" && _id == $id][0]`, { id });
+  return client.fetch(groq`*[_type == "shoes" && _id == $id][0]`, { id });
 }
 
-// 🟢 Create a new product
-export async function createShoe(data: All): Promise<All> {
-  return client.create({
-    _type: "product",
-    ...data,
-  });
+export async function getInnerwears(): Promise<All[]> {
+  // Directly return the promise from client.fetch
+  return client.fetch(groq`*[_type == "innerwears"]`);
 }
 
-// 🟢 Update a product by ID
-export async function updateShoe(id: string, data: Partial<All>): Promise<All> {
-  return client.patch(id).set(data).commit();
+// 🟢 Fetch a single product by ID
+export async function getInnerwearById(id: string): Promise<All | null> {
+  return client.fetch(groq`*[_type == "innerwears" && _id == $id][0]`, { id });
 }
 
-// 🟢 Delete a product by ID
-export async function deleteShoe(id: string): Promise<All> {
-  return client.delete(id);
+export async function getOutfits(): Promise<All[]> {
+  // Directly return the promise from client.fetch
+  return client.fetch(groq`*[_type == "outfits"]`);
 }
+
+// 🟢 Fetch a single product by ID
+export async function getOutfitById(id: string): Promise<All | null> {
+  return client.fetch(groq`*[_type == "outfits" && _id == $id][0]`, { id });
+}
+
+export async function getToys(): Promise<All[]> {
+  // Directly return the promise from client.fetch
+  return client.fetch(groq`*[_type == "toys"]`);
+}
+
+// 🟢 Fetch a single product by ID
+export async function getToyById(id: string): Promise<All | null> {
+  return client.fetch(groq`*[_type == "toys" && _id == $id][0]`, { id });
+}
+
+export async function getWatches(): Promise<All[]> {
+  // Directly return the promise from client.fetch
+  return client.fetch(groq`*[_type == "watches"]`);
+}
+
+// 🟢 Fetch a single product by ID
+export async function getWatchById(id: string): Promise<All | null> {
+  return client.fetch(groq`*[_type == "watches" && _id == $id][0]`, { id });
+}
+
 export async function getProfile(email: string): Promise<UserProfile | null> {
   return client.fetch(
     groq`*[_type == "userProfile" && email == $email][0]`,

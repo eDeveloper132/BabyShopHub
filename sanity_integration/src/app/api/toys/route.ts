@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getShoes, getShoeById } from "../../lib/sanity";
+import { getToys, getToyById } from "../../lib/sanity";
 
 // ✅ CORS Headers (For Reusability)
 const corsHeaders = {
@@ -16,18 +16,18 @@ export async function GET(req: Request) {
     const id = searchParams.get("id");
 
     if (id) {
-      const product = await getShoeById(id);
+      const product = await getToyById(id);
       if (!product) {
-        return NextResponse.json({ error: "Shoe not found" }, { status: 404, headers: corsHeaders });
+        return NextResponse.json({ error: "Toy not found" }, { status: 404, headers: corsHeaders });
       }
       return NextResponse.json(product, { status: 200, headers: corsHeaders });
     } else {
-      const products = await getShoes();
+      const products = await getToys();
       return NextResponse.json(products, { status: 200, headers: corsHeaders });
     }
   } catch (error) {
-    console.error("Error fetching Shoes:", error);
-    return NextResponse.json({ error: "Failed to fetch Shoes" }, { status: 500, headers: corsHeaders });
+    console.error("Error fetching Toys:", error);
+    return NextResponse.json({ error: "Failed to fetch Toys" }, { status: 500, headers: corsHeaders });
   }
 }
 
