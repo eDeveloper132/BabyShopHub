@@ -2,7 +2,7 @@ import { client } from "@/sanity/lib/client";
 import { groq } from "next-sanity";
 
 // Define a TypeScript type for a Product
-export type Shoe = {
+export type All = {
   _id?: string; // Optional Sanity document ID
   title: string;
   video: { asset: { _ref: string } }; // Reference to a Sanity file
@@ -27,18 +27,18 @@ export type UserProfile = {
   }[];
 };
 // 🟢 Fetch all products
-export async function getShoes(): Promise<Shoe[]> {
+export async function getShoes(): Promise<All[]> {
   // Directly return the promise from client.fetch
   return client.fetch(groq`*[_type == "product"]`);
 }
 
 // 🟢 Fetch a single product by ID
-export async function getShoeById(id: string): Promise<Shoe | null> {
+export async function getShoeById(id: string): Promise<All | null> {
   return client.fetch(groq`*[_type == "product" && _id == $id][0]`, { id });
 }
 
 // 🟢 Create a new product
-export async function createShoe(data: Shoe): Promise<Shoe> {
+export async function createShoe(data: All): Promise<All> {
   return client.create({
     _type: "product",
     ...data,
@@ -46,12 +46,12 @@ export async function createShoe(data: Shoe): Promise<Shoe> {
 }
 
 // 🟢 Update a product by ID
-export async function updateShoe(id: string, data: Partial<Shoe>): Promise<Shoe> {
+export async function updateShoe(id: string, data: Partial<All>): Promise<All> {
   return client.patch(id).set(data).commit();
 }
 
 // 🟢 Delete a product by ID
-export async function deleteShoe(id: string): Promise<Shoe> {
+export async function deleteShoe(id: string): Promise<All> {
   return client.delete(id);
 }
 export async function getProfile(email: string): Promise<UserProfile | null> {
