@@ -5,7 +5,7 @@ import 'dart:convert';
 class ProductService {
   // URL of the API to fetch products
   static const String _apiUrl =
-      'https://baby-shop-hub-two.vercel.app/api/products';
+      'https://baby-shop-hub-two.vercel.app/api/shoes';
 
   // Fetch products data from the API
   static Future<List<Products>> fetchProducts() async {
@@ -37,15 +37,18 @@ class ProductService {
 
   // Utility function to get product video URL
   static String getSanityVideoUrl(String ref) {
-    if (ref.isEmpty) return '';
-    final parts = ref.split('-');
-    if (parts.length < 4) return '';
-    final videoId = parts[1];
-    final dimensions = parts[2];
-    final format = parts[3];
-    print("$videoId $dimensions $format");
-    // Assuming videos use a similar CDN structure; adjust if different
-    return "https://cdn.sanity.io/files/wy0dryv4/production/$videoId-$dimensions.$format";
+    if (ref.isEmpty) return ''; // Handle empty input
+    final parts = ref.split('-'); // Split the reference by hyphens
+    if (parts.length < 3) {
+      // Check if there are at least 3 parts
+      print('Invalid video ref format: $parts');
+      return '';
+    }
+    final videoId =
+        parts[1]; // Extract assetId (e.g., 139d79ed16a02fa2a5938a568848cee591529a54)
+    final format = parts.last; // Extract format (e.g., mp4)
+    print('Video ID: $videoId, Format: $format'); // Optional: for debugging
+    return "https://cdn.sanity.io/files/wy0dryv4/production/$videoId.$format"; // Construct URL
   }
 
   // New method to fetch all image and video URLs

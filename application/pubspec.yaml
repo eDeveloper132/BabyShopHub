@@ -45,6 +45,8 @@ dependencies:
   flutter_cache_manager: ^3.4.1
   provider: ^6.1.4
   video_player: ^2.9.5
+  share_plus: ^10.1.4
+  chewie: ^1.11.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

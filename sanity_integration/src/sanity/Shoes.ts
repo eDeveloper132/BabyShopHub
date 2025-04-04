@@ -1,8 +1,9 @@
 import { defineType, defineField } from 'sanity';
 import { client } from './lib/client';
-const productSchema = defineType({
-  name: 'product',
-  title: 'Product',
+
+const shoesSchema = defineType({
+  name: 'shoes',
+  title: 'Shoes',
   type: 'document',
   fields: [
     defineField({
@@ -16,12 +17,12 @@ const productSchema = defineType({
           const { document } = context;
 
           // Query to check for duplicate titles
-          const existingProducts = await client.fetch(
-            `*[_type == "product" && title == $title && _id != $id][0]`,
+          const existingShoes = await client.fetch(
+            `*[_type == "shoes" && title == $title && _id != $id][0]`,
             { title, id: document?._id }
           );
 
-          return existingProducts ? 'Title must be unique' : true;
+          return existingShoes ? 'Title must be unique' : true;
         }),
     }),
     defineField({
@@ -35,21 +36,21 @@ const productSchema = defineType({
       title: 'Images',
       type: 'array',
       of: [{ type: 'image' }],
-      validation: (Rule) => Rule.max(3).required(), // Uses ArrayRule implicitly
+      validation: (Rule) => Rule.max(3).required(),
     }),
     defineField({
       name: 'description',
       title: 'Description',
       type: 'text',
-      validation: (Rule) => Rule.required().min(10), // Uses StringRule implicitly
+      validation: (Rule) => Rule.required().min(10),
     }),
     defineField({
       name: 'price',
       title: 'Price',
       type: 'number',
-      validation: (Rule) => Rule.required().min(0), // Uses NumberRule implicitly
+      validation: (Rule) => Rule.required().min(0),
     }),
   ],
 });
 
-export default productSchema;
+export default shoesSchema;

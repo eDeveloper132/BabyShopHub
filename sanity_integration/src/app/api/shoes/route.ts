@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getProducts, createProduct, updateProduct, deleteProduct, getProductById } from "../../lib/sanity";
+import { getShoes, createShoe, updateShoe, deleteShoe, getShoeById } from "../../lib/sanity";
 
 // ✅ CORS Headers (For Reusability)
 const corsHeaders = {
@@ -16,13 +16,13 @@ export async function GET(req: Request) {
     const id = searchParams.get("id");
 
     if (id) {
-      const product = await getProductById(id);
+      const product = await getShoeById(id);
       if (!product) {
         return NextResponse.json({ error: "Product not found" }, { status: 404, headers: corsHeaders });
       }
       return NextResponse.json(product, { status: 200, headers: corsHeaders });
     } else {
-      const products = await getProducts();
+      const products = await getShoes();
       return NextResponse.json(products, { status: 200, headers: corsHeaders });
     }
   } catch (error) {
@@ -42,7 +42,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Missing or invalid product data" }, { status: 400 });
       }
 
-      const newProduct = await createProduct(data);
+      const newProduct = await createShoe(data);
       return NextResponse.json(newProduct, { status: 201, headers: corsHeaders });
     } else {
       return NextResponse.json({ error: "Request body is missing" }, { status: 400 });
@@ -69,7 +69,7 @@ export async function PUT(req: Request) {
         return NextResponse.json({ error: "No update fields provided" }, { status: 400 });
       }
 
-      const updatedProduct = await updateProduct(id, data);
+      const updatedProduct = await updateShoe(id, data);
       return NextResponse.json(updatedProduct, { status: 200, headers: corsHeaders });
     } else {
       return NextResponse.json({ error: "Request body is missing" }, { status: 400 });
@@ -94,7 +94,7 @@ export async function DELETE(req: Request) {
 
     console.log("Attempting to delete product with ID:", id); // Log the ID before deleting
 
-    await deleteProduct(id);
+    await deleteShoe(id);
     return NextResponse.json({ message: "Product deleted successfully" }, { status: 200 });
   } catch (error: unknown) {
     if (error instanceof Error) {
