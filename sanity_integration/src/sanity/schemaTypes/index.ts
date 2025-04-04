@@ -1,6 +1,10 @@
 import { type SchemaTypeDefinition } from 'sanity'
-import shoeSchema from '../Shoes'
+import shoesSchema from '../Shoes'
 import profileSchema from '../profile'
+import innerwearsSchema from '../innerwears'
+import outfitsSchema from '../outfits'
+import toysSchema from '../toys'
+import watchesSchema from '../watches'
 export const schema: { types: SchemaTypeDefinition[] } = {
-  types: [shoeSchema, profileSchema],
+  types: [shoesSchema, innerwearsSchema, outfitsSchema, toysSchema, watchesSchema, profileSchema],
 }
