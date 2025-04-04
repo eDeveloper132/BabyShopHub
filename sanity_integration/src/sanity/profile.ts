@@ -1,6 +1,6 @@
 import { defineType, defineField } from 'sanity';
 
-export default defineType({
+const UserProfile = defineType({
   name: 'userProfile',
   title: 'User Profile',
   type: 'document',
@@ -113,3 +113,4 @@ export default defineType({
     }),
   ],
 });
+export default UserProfile;

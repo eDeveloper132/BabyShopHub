@@ -1,11 +1,13 @@
 import { type SchemaTypeDefinition } from 'sanity'
-import profileSchema from '../profile'
-import innerwearsSchema from '../innerwears'
-import outfitsSchema from '../outfits'
-import toysSchema from '../toys'
-import watchesSchema from '../watches'
-import shoesSchema from '../shoes'
+
+import bootsSchema from '../Shoes'
+import innerwearsSchema from '../Innerwears'
+import outfitsSchema from '../Outfits'
+import toysSchema from '../Toys'
+import watchesSchema from '../Watches'
+import UserProfile from '../Profile'
+
 // import shoesSchema from '../shoes'
 export const schema: { types: SchemaTypeDefinition[] } = {
-  types: [innerwearsSchema, outfitsSchema, toysSchema, watchesSchema, shoesSchema, profileSchema],
+  types: [innerwearsSchema, outfitsSchema, toysSchema, watchesSchema, bootsSchema, UserProfile],
 }

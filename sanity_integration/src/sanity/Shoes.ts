@@ -1,9 +1,9 @@
 import { defineType, defineField } from 'sanity';
 import { client } from './lib/client';
 
-const shoesSchema = defineType({
-  name: 'shoes',
-  title: 'Shoes',
+const bootsSchema = defineType({
+  name: 'boots',
+  title: 'Boots',
   type: 'document',
   fields: [
     defineField({
@@ -18,7 +18,7 @@ const shoesSchema = defineType({
 
           // Query to check for duplicate titles
           const existingShoes = await client.fetch(
-            `*[_type == "shoes" && title == $title && _id != $id][0]`,
+            `*[_type == "boots" && title == $title && _id != $id][0]`,
             { title, id: document?._id }
           );
 
@@ -53,4 +53,4 @@ const shoesSchema = defineType({
   ],
 });
 
-export default shoesSchema;
+export default bootsSchema;

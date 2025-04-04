@@ -6,12 +6,12 @@ import { UserProfile } from "../types/UserProfile";
 // 🟢 Fetch all products
 export async function getShoes(): Promise<All[]> {
   // Directly return the promise from client.fetch
-  return client.fetch(groq`*[_type == "shoes"]`);
+  return client.fetch(groq`*[_type == "boots"]`);
 }
 
 // 🟢 Fetch a single product by ID
 export async function getShoeById(id: string): Promise<All | null> {
-  return client.fetch(groq`*[_type == "shoes" && _id == $id][0]`, { id });
+  return client.fetch(groq`*[_type == "boots" && _id == $id][0]`, { id });
 }
 
 export async function getInnerwears(): Promise<All[]> {
