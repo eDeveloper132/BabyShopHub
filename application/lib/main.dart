@@ -19,12 +19,10 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   bool isLoggedIn = await checkUserSession();
-
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => SingleServiceProvider()),
-        ChangeNotifierProvider(create: (context) => ProfileService()),
         ChangeNotifierProvider(create: (context) => ProfileService()),
       ],
       child: MyApp(isLoggedIn: isLoggedIn),
@@ -63,6 +61,23 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   String selectedCategory = 'Outfits'; // Initial category
 
+  Future<void> _loadProfile() async {
+    final prefs = await SharedPreferences.getInstance();
+    final email = prefs.getString(
+      'userId',
+    ); // Make sure email is saved at login
+
+    if (email != null) {
+      final profileService = Provider.of<ProfileService>(
+        context,
+        listen: false,
+      );
+      await profileService.fetchProfile(email);
+    } else {
+      print("No email found in SharedPreferences.");
+    }
+  }
+
   final List<Map<String, String>> categories = [
     {'title': 'Outfits', 'image': '../assets/outfit.jpg'},
     {'title': 'Toys', 'image': '../assets/toyr.png'},
@@ -92,6 +107,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -114,62 +134,84 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Carousel slider using API response instead of local assets
+            // Carousel slider using API response instead of local assets
             FutureBuilder<List<Products>>(
               future: _getSliderFuture(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return SizedBox(
-                    height: 200,
+                    height: 180,
                     child: Center(child: CircularProgressIndicator()),
                   );
                 } else if (snapshot.hasError) {
                   return SizedBox(
-                    height: 200,
+                    height: 180,
                     child: Center(child: Text('Error loading slider')),
                   );
                 } else if (snapshot.hasData) {
                   final sliderProducts = snapshot.data!;
-                  // Map each slider to its first image URL using the utility function
-                  final sliderImageUrls =
-                      sliderProducts
-                          .map((slider) {
-                            if (slider.images != null &&
-                                slider.images!.isNotEmpty) {
-                              return ProductService.getSanityImageUrl(
-                                slider.images![0].asset!.sRef!,
-                              );
-                            }
-                            return '';
-                          })
-                          .where((url) => url.isNotEmpty)
-                          .toList();
-
-                  return CarouselSlider(
-                    options: CarouselOptions(
-                      height: 200,
-                      autoPlay: true,
-                      enlargeCenterPage: true,
-                      aspectRatio: 16 / 9,
-                    ),
-                    items:
-                        sliderImageUrls.map((imageUrl) {
-                          return Container(
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              image: DecorationImage(
-                                image: NetworkImage(imageUrl),
-                                fit: BoxFit.cover,
+                  // Flatten all images from all slider documents into a single list
+                  List<String> sliderImageUrls = [];
+                  for (var slider in sliderProducts) {
+                    if (slider.images != null && slider.images!.isNotEmpty) {
+                      sliderImageUrls.addAll(
+                        slider.images!
+                            .map(
+                              (img) => ProductService.getSanityImageUrl(
+                                img.asset?.sRef ?? '',
                               ),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          );
-                        }).toList(),
+                            )
+                            .where((url) => url.isNotEmpty)
+                            .toList(),
+                      );
+                    }
+                  }
+                  if (sliderImageUrls.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 8.0,
+                    ),
+                    child: CarouselSlider(
+                      options: CarouselOptions(
+                        height: 180,
+                        autoPlay: true,
+                        enlargeCenterPage: true,
+                        viewportFraction: 0.9,
+                        aspectRatio: 16 / 9,
+                      ),
+                      items:
+                          sliderImageUrls.map((imageUrl) {
+                            return Container(
+                              margin: const EdgeInsets.symmetric(
+                                horizontal: 4.0,
+                              ),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(15),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.15),
+                                    blurRadius: 5,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                                image: DecorationImage(
+                                  image: NetworkImage(imageUrl),
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                    ),
                   );
                 } else {
                   return const SizedBox.shrink();
                 }
               },
             ),
+
             const SizedBox(height: 20),
             _sectionTitle('Categories'),
             const SizedBox(height: 10),

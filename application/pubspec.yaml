@@ -84,6 +84,7 @@ flutter:
     - assets/watch.jpg
     - assets/toyr.png
     - assets/outfit.jpg
+    - assets/notcompleted_notpending.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

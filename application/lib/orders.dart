@@ -44,7 +44,7 @@ class OrdersPage extends StatelessWidget {
             Row(
               children: [
                 Image(
-                  image: AssetImage('assets/banner1.jpg'),
+                  image: AssetImage('notcompleted_notpending.png'),
                   width: 80,
                   height: 80,
                 ),
