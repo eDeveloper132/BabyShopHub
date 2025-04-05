@@ -1,12 +1,14 @@
 {
   "name": "sanity_integration",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "clean": "rm -rf .next node_modules && rm -f package-lock.json && npm install",
+    "rebuild": "npm run clean && npm run build"
   },
   "dependencies": {
     "@sanity/image-url": "^1.1.0",
