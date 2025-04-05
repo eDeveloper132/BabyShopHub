@@ -1,4 +1,4 @@
-import 'package:application/ProductProviders/provider.dart'; // Import ProductService
+import 'package:application/ProductProviders/provider.dart';
 import 'package:application/ProductProviders/singleProvider.dart';
 import 'package:application/ProfileProviders/provider_pro.dart';
 import 'package:application/product_detail.dart';
@@ -45,7 +45,16 @@ class MyApp extends StatelessWidget {
       title: 'BabyShopHub',
       theme: ThemeData(
         primaryColor: const Color(0xFFFFA7B3),
-        scaffoldBackgroundColor: const Color(0xFFFCEFF1),
+        scaffoldBackgroundColor: Colors.transparent,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          titleTextStyle: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
       ),
       debugShowCheckedModeBanner: false,
       home: isLoggedIn ? HomeScreen() : AuthScreen(),
@@ -59,22 +68,17 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String selectedCategory = 'Outfits'; // Initial category
+  String selectedCategory = 'Outfits';
 
   Future<void> _loadProfile() async {
     final prefs = await SharedPreferences.getInstance();
-    final email = prefs.getString(
-      'userId',
-    ); // Make sure email is saved at login
-
+    final email = prefs.getString('userId');
     if (email != null) {
       final profileService = Provider.of<ProfileService>(
         context,
         listen: false,
       );
       await profileService.fetchProfile(email);
-    } else {
-      print("No email found in SharedPreferences.");
     }
   }
 
@@ -85,7 +89,6 @@ class _HomeScreenState extends State<HomeScreen> {
     {'title': 'Innerwears', 'image': '../assets/Innerwear.jpg'},
   ];
 
-  // Fetch products based on the selected category
   Future<List<Products>> _getProductsFuture() {
     switch (selectedCategory) {
       case 'Outfits':
@@ -101,7 +104,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // New function to fetch slider data
   Future<List<Products>> _getSliderFuture() {
     return ProductService.fetchSlider();
   }
@@ -112,135 +114,233 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadProfile();
   }
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('BabyShopHub'),
-        backgroundColor: const Color(0xFFFFA7B3),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.shopping_cart),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => ShoppingCartPage()),
-              );
-            },
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.purpleAccent, Colors.pinkAccent, Colors.blueAccent],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Carousel slider using API response instead of local assets
-            // Carousel slider using API response instead of local assets
-            FutureBuilder<List<Products>>(
-              future: _getSliderFuture(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return SizedBox(
-                    height: 180,
-                    child: Center(child: CircularProgressIndicator()),
-                  );
-                } else if (snapshot.hasError) {
-                  return SizedBox(
-                    height: 180,
-                    child: Center(child: Text('Error loading slider')),
-                  );
-                } else if (snapshot.hasData) {
-                  final sliderProducts = snapshot.data!;
-                  // Flatten all images from all slider documents into a single list
-                  List<String> sliderImageUrls = [];
-                  for (var slider in sliderProducts) {
-                    if (slider.images != null && slider.images!.isNotEmpty) {
-                      sliderImageUrls.addAll(
-                        slider.images!
-                            .map(
-                              (img) => ProductService.getSanityImageUrl(
-                                img.asset?.sRef ?? '',
-                              ),
-                            )
-                            .where((url) => url.isNotEmpty)
-                            .toList(),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'BabyShopHub',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black26,
+                              blurRadius: 4,
+                              offset: Offset(2, 2),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.shopping_cart,
+                          color: Colors.white,
+                          size: 28,
+                        ),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ShoppingCartPage(),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                FutureBuilder<List<Products>>(
+                  future: _getSliderFuture(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const SizedBox(
+                        height: 200,
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                          ),
+                        ),
                       );
                     }
-                  }
-                  if (sliderImageUrls.isEmpty) {
-                    return const SizedBox.shrink();
-                  }
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0,
-                      vertical: 8.0,
-                    ),
-                    child: CarouselSlider(
-                      options: CarouselOptions(
-                        height: 180,
-                        autoPlay: true,
-                        enlargeCenterPage: true,
-                        viewportFraction: 0.9,
-                        aspectRatio: 16 / 9,
-                      ),
-                      items:
-                          sliderImageUrls.map((imageUrl) {
-                            return Container(
-                              margin: const EdgeInsets.symmetric(
-                                horizontal: 4.0,
-                              ),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(15),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.15),
-                                    blurRadius: 5,
-                                    offset: const Offset(0, 3),
-                                  ),
-                                ],
-                                image: DecorationImage(
-                                  image: NetworkImage(imageUrl),
-                                  fit: BoxFit.cover,
+                    if (!snapshot.hasData) return const SizedBox.shrink();
+                    final sliderProducts = snapshot.data!;
+                    List<String> sliderImageUrls = [];
+                    for (var slider in sliderProducts) {
+                      if (slider.images != null && slider.images!.isNotEmpty) {
+                        sliderImageUrls.addAll(
+                          slider.images!
+                              .map(
+                                (img) => ProductService.getSanityImageUrl(
+                                  img.asset?.sRef ?? '',
                                 ),
-                              ),
-                            );
-                          }).toList(),
-                    ),
-                  );
-                } else {
-                  return const SizedBox.shrink();
-                }
-              },
+                              )
+                              .toList(),
+                        );
+                      }
+                    }
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: CarouselSlider(
+                        options: CarouselOptions(
+                          height: 180,
+                          autoPlay: true,
+                          enlargeCenterPage: true,
+                          aspectRatio: 16 / 9,
+                        ),
+                        items:
+                            sliderImageUrls.map((imageUrl) {
+                              return Container(
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(15),
+                                  image: DecorationImage(
+                                    image: NetworkImage(imageUrl),
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                                child: Stack(
+                                  children: [
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(15),
+                                        gradient: LinearGradient(
+                                          begin: Alignment.bottomCenter,
+                                          end: Alignment.topCenter,
+                                          colors: [
+                                            Colors.black.withOpacity(0.5),
+                                            Colors.transparent,
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    Positioned(
+                                      bottom: 16,
+                                      left: 16,
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          const Text(
+                                            'MEGA SALE',
+                                            style: TextStyle(
+                                              fontSize: 24,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                              shadows: [
+                                                Shadow(
+                                                  color: Colors.black45,
+                                                  blurRadius: 4,
+                                                  offset: Offset(1, 1),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          const Text(
+                                            'HURRY NOW!',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              color: Colors.white70,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          ElevatedButton(
+                                            onPressed: () {},
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: const Color(
+                                                0xFFFFA7B3,
+                                              ),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                              ),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 16,
+                                                    vertical: 8,
+                                                  ),
+                                            ),
+                                            child: const Text(
+                                              'Shop Now',
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 20),
+                _sectionTitle('Categories'),
+                const SizedBox(height: 10),
+                _buildCategoryList(),
+                const SizedBox(height: 20),
+                _sectionTitle(selectedCategory),
+                const SizedBox(height: 10),
+                FutureBuilder<List<Products>>(
+                  future: _getProductsFuture(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
+                        ),
+                      );
+                    }
+                    if (!snapshot.hasData)
+                      return const Center(
+                        child: Text(
+                          'No products available',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      );
+                    return _buildProducts(snapshot.data!, selectedCategory);
+                  },
+                ),
+                const SizedBox(height: 20),
+              ],
             ),
-
-            const SizedBox(height: 20),
-            _sectionTitle('Categories'),
-            const SizedBox(height: 10),
-            _buildCategoryList(),
-            const SizedBox(height: 20),
-            _sectionTitle(selectedCategory), // Dynamic title
-            const SizedBox(height: 10),
-            FutureBuilder<List<Products>>(
-              future: _getProductsFuture(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                } else if (snapshot.hasData) {
-                  final products = snapshot.data!;
-                  return _buildProducts(products, selectedCategory);
-                } else {
-                  return const Center(child: Text('No products available.'));
-                }
-              },
-            ),
-            const SizedBox(height: 20),
-          ],
+          ),
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        selectedItemColor: const Color(0xFFFFA7B3),
-        unselectedItemColor: Colors.grey,
+        selectedItemColor: Colors.white,
+        unselectedItemColor: Colors.white70,
+        backgroundColor: Colors.black.withOpacity(0.2),
         currentIndex: 0,
         onTap: (index) {
           if (index == 0) {
@@ -274,7 +374,14 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Text(
         title,
-        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+          shadows: [
+            Shadow(color: Colors.black26, blurRadius: 4, offset: Offset(1, 1)),
+          ],
+        ),
       ),
     );
   }
@@ -282,6 +389,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildCategoryList() {
     return Container(
       height: 100,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: categories.length,
@@ -291,12 +399,8 @@ class _HomeScreenState extends State<HomeScreen> {
             context,
             category,
             categories[index]['image']!,
-            selectedCategory == category, // Highlight selected category
-            () {
-              setState(() {
-                selectedCategory = category; // Update selected category
-              });
-            },
+            selectedCategory == category,
+            () => setState(() => selectedCategory = category),
           );
         },
       ),
@@ -351,25 +455,48 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: onTap,
         child: Column(
           children: [
-            CircleAvatar(
-              radius: 30,
-              backgroundImage: AssetImage(imagePath),
-              child:
-                  isSelected
-                      ? Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.blue, width: 2),
-                        ),
-                      )
-                      : null,
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: CircleAvatar(
+                radius: 32,
+                backgroundImage: AssetImage(imagePath),
+                child:
+                    isSelected
+                        ? Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: const Color(0xFFFFA7B3),
+                              width: 3,
+                            ),
+                          ),
+                        )
+                        : null,
+              ),
             ),
-            const SizedBox(height: 5),
+            const SizedBox(height: 6),
             Text(
               title,
               style: TextStyle(
                 fontSize: 14,
-                color: isSelected ? Colors.blue : Colors.black,
+                fontWeight: FontWeight.w500,
+                color: isSelected ? Colors.white : Colors.white70,
+                shadows: const [
+                  Shadow(
+                    color: Colors.black26,
+                    blurRadius: 2,
+                    offset: Offset(1, 1),
+                  ),
+                ],
               ),
             ),
           ],
