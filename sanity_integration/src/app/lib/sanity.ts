@@ -2,7 +2,11 @@ import { client } from "@/sanity/lib/client";
 import { groq } from "next-sanity";
 import { All } from "../types/All";
 import { UserProfile } from "../types/UserProfile";
+import { ImageGallery } from "../types/slider";
 
+export async function getImageGallery(): Promise<ImageGallery[]> {
+  return client.fetch(groq`*[_type == "slider"]`);
+}
 export async function getInnerwears(): Promise<All[]> {
   // Directly return the promise from client.fetch
   return client.fetch(groq`*[_type == "innerwears"]`);

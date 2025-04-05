@@ -25,9 +25,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (context) => SingleServiceProvider()),
         ChangeNotifierProvider(create: (context) => ProfileService()),
-        ChangeNotifierProvider(
-          create: (context) => ProfileService(),
-        ), // Add this
+        ChangeNotifierProvider(create: (context) => ProfileService()),
       ],
       child: MyApp(isLoggedIn: isLoggedIn),
     ),
@@ -48,8 +46,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'BabyShopHub',
       theme: ThemeData(
-        primaryColor: Color(0xFFFFA7B3),
-        scaffoldBackgroundColor: Color(0xFFFCEFF1),
+        primaryColor: const Color(0xFFFFA7B3),
+        scaffoldBackgroundColor: const Color(0xFFFCEFF1),
       ),
       debugShowCheckedModeBanner: false,
       home: isLoggedIn ? HomeScreen() : AuthScreen(),
@@ -57,39 +55,51 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class HomeScreen extends StatelessWidget {
-  final List<String> bannerImages = [
-    '../assets/banner1.jpg',
-    '../assets/banner2.jpg',
-    '../assets/banner3.jpg',
-  ];
+class HomeScreen extends StatefulWidget {
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  String selectedCategory = 'Outfits'; // Initial category
+
   final List<Map<String, String>> categories = [
-    {'title': 'Clothing', 'image': '../assets/clothing.jpg'},
-    {'title': 'Toys', 'image': '../assets/toys.jpg'},
-    {'title': 'Accessories', 'image': '../assets/accessories.jpg'},
+    {'title': 'Outfits', 'image': '../assets/outfit.jpg'},
+    {'title': 'Toys', 'image': '../assets/toyr.png'},
+    {'title': 'Watches', 'image': '../assets/watch.jpg'},
+    {'title': 'Innerwears', 'image': '../assets/Innerwear.jpg'},
   ];
-  // final List<Map<String, String>> trendingProducts = [
-  //   {
-  //     'title': 'Baby Dress',
-  //     'image': '../assets/dress.jpg',
-  //     'price': 'Rs. 1200',
-  //   },
-  //   {'title': 'Soft Toy', 'image': '../assets/toy.jpg', 'price': 'Rs. 800'},
-  //   {
-  //     'title': 'Baby Shoes',
-  //     'image': '../assets/shoes.jpg',
-  //     'price': 'Rs. 1500',
-  //   },
-  // ];
+
+  // Fetch products based on the selected category
+  Future<List<Products>> _getProductsFuture() {
+    switch (selectedCategory) {
+      case 'Outfits':
+        return ProductService.fetchOutfits();
+      case 'Toys':
+        return ProductService.fetchToys();
+      case 'Watches':
+        return ProductService.fetchWatches();
+      case 'Innerwears':
+        return ProductService.fetchInnerwear();
+      default:
+        return Future.error('Invalid category');
+    }
+  }
+
+  // New function to fetch slider data
+  Future<List<Products>> _getSliderFuture() {
+    return ProductService.fetchSlider();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('BabyShopHub'),
-        backgroundColor: Color(0xFFFFA7B3),
+        title: const Text('BabyShopHub'),
+        backgroundColor: const Color(0xFFFFA7B3),
         actions: [
           IconButton(
-            icon: Icon(Icons.shopping_cart),
+            icon: const Icon(Icons.shopping_cart),
             onPressed: () {
               Navigator.push(
                 context,
@@ -103,76 +113,91 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CarouselSlider(
-              options: CarouselOptions(
-                height: 200,
-                autoPlay: true,
-                enlargeCenterPage: true,
-                aspectRatio: 16 / 9,
-              ),
-              items:
-                  bannerImages.map((image) {
-                    return Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        image: DecorationImage(
-                          image: AssetImage(image),
-                          fit: BoxFit.cover,
-                        ),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    );
-                  }).toList(),
-            ),
-            SizedBox(height: 20),
-            _sectionTitle('Categories'),
-            SizedBox(height: 10),
-            _buildCategoryList(),
-            SizedBox(height: 20),
-            _sectionTitle('Trending Products'),
-            SizedBox(height: 10),
-            // Use FutureBuilder to fetch and display trending products
+            // Carousel slider using API response instead of local assets
             FutureBuilder<List<Products>>(
-              future: ProductService.fetchProducts(), // Fetch products here
+              future: _getSliderFuture(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
+                  return SizedBox(
+                    height: 200,
+                    child: Center(child: CircularProgressIndicator()),
+                  );
                 } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
+                  return SizedBox(
+                    height: 200,
+                    child: Center(child: Text('Error loading slider')),
+                  );
                 } else if (snapshot.hasData) {
-                  final trendingProducts = snapshot.data!;
-                  return _buildTrendingProducts(
-                    trendingProducts,
-                  ); // Pass fetched products
+                  final sliderProducts = snapshot.data!;
+                  // Map each slider to its first image URL using the utility function
+                  final sliderImageUrls =
+                      sliderProducts
+                          .map((slider) {
+                            if (slider.images != null &&
+                                slider.images!.isNotEmpty) {
+                              return ProductService.getSanityImageUrl(
+                                slider.images![0].asset!.sRef!,
+                              );
+                            }
+                            return '';
+                          })
+                          .where((url) => url.isNotEmpty)
+                          .toList();
+
+                  return CarouselSlider(
+                    options: CarouselOptions(
+                      height: 200,
+                      autoPlay: true,
+                      enlargeCenterPage: true,
+                      aspectRatio: 16 / 9,
+                    ),
+                    items:
+                        sliderImageUrls.map((imageUrl) {
+                          return Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              image: DecorationImage(
+                                image: NetworkImage(imageUrl),
+                                fit: BoxFit.cover,
+                              ),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          );
+                        }).toList(),
+                  );
                 } else {
-                  return Center(child: Text('No products available.'));
+                  return const SizedBox.shrink();
                 }
               },
             ),
-            SizedBox(height: 20),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFFFFA7B3),
-                  padding: EdgeInsets.symmetric(vertical: 12),
-                ),
-                icon: Icon(Icons.track_changes, color: Colors.white),
-                label: Text(
-                  'Track Your Order',
-                  style: TextStyle(color: Colors.white, fontSize: 16),
-                ),
-                onPressed: () {
-                  // Navigate to order tracking screen
-                },
-              ),
+            const SizedBox(height: 20),
+            _sectionTitle('Categories'),
+            const SizedBox(height: 10),
+            _buildCategoryList(),
+            const SizedBox(height: 20),
+            _sectionTitle(selectedCategory), // Dynamic title
+            const SizedBox(height: 10),
+            FutureBuilder<List<Products>>(
+              future: _getProductsFuture(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                } else if (snapshot.hasData) {
+                  final products = snapshot.data!;
+                  return _buildProducts(products, selectedCategory);
+                } else {
+                  return const Center(child: Text('No products available.'));
+                }
+              },
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
           ],
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        selectedItemColor: Color(0xFFFFA7B3),
+        selectedItemColor: const Color(0xFFFFA7B3),
         unselectedItemColor: Colors.grey,
         currentIndex: 0,
         onTap: (index) {
@@ -190,7 +215,7 @@ class HomeScreen extends StatelessWidget {
             );
           }
         },
-        items: [
+        items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(
             icon: Icon(Icons.shopping_bag),
@@ -204,10 +229,10 @@ class HomeScreen extends StatelessWidget {
 
   Widget _sectionTitle(String title) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Text(
         title,
-        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -219,29 +244,37 @@ class HomeScreen extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         itemCount: categories.length,
         itemBuilder: (context, index) {
+          final category = categories[index]['title']!;
           return _categoryItem(
-            categories[index]['title']!,
+            context,
+            category,
             categories[index]['image']!,
+            selectedCategory == category, // Highlight selected category
+            () {
+              setState(() {
+                selectedCategory = category; // Update selected category
+              });
+            },
           );
         },
       ),
     );
   }
 
-  Widget _buildTrendingProducts(List<Products> trendingProducts) {
+  Widget _buildProducts(List<Products> products, String category) {
     return Container(
       height: 200,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: trendingProducts.length,
+        itemCount: products.length,
         itemBuilder: (context, index) {
-          final product = trendingProducts[index];
+          final product = products[index];
           return GestureDetector(
             onTap: () {
               Provider.of<SingleServiceProvider>(
                 context,
                 listen: false,
-              ).setSelectedProductId(product.sId ?? '');
+              ).setSelectedProductId(product.sId ?? '', category);
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => ProductDetailScreen()),
@@ -255,6 +288,7 @@ class HomeScreen extends StatelessWidget {
                     : '',
               ),
               'Rs. ${product.price?.toString() ?? 'N/A'}',
+              category,
             ),
           );
         },
@@ -262,22 +296,54 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _categoryItem(String title, String imagePath) {
+  Widget _categoryItem(
+    BuildContext context,
+    String title,
+    String imagePath,
+    bool isSelected,
+    VoidCallback onTap,
+  ) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 8),
-      child: Column(
-        children: [
-          CircleAvatar(radius: 30, backgroundImage: AssetImage(imagePath)),
-          SizedBox(height: 5),
-          Text(title, style: TextStyle(fontSize: 14)),
-        ],
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Column(
+          children: [
+            CircleAvatar(
+              radius: 30,
+              backgroundImage: AssetImage(imagePath),
+              child:
+                  isSelected
+                      ? Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.blue, width: 2),
+                        ),
+                      )
+                      : null,
+            ),
+            const SizedBox(height: 5),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 14,
+                color: isSelected ? Colors.blue : Colors.black,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _productCard(String title, String imagePath, String price) {
+  Widget _productCard(
+    String title,
+    String imagePath,
+    String price,
+    String category,
+  ) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Container(
         width: 150,
         decoration: BoxDecoration(
@@ -295,7 +361,9 @@ class HomeScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(10),
+              ),
               child: Image.network(
                 imagePath,
                 height: 100,
@@ -306,28 +374,36 @@ class HomeScreen extends StatelessWidget {
                       height: 100,
                       width: 150,
                       color: Colors.grey.shade200,
-                      child: Icon(Icons.error, color: Colors.red),
+                      child: const Icon(Icons.error, color: Colors.red),
                     ),
                 loadingBuilder: (context, child, loadingProgress) {
                   if (loadingProgress == null) return child;
                   return Container(
                     height: 100,
                     width: 150,
-                    child: Center(child: CircularProgressIndicator()),
+                    child: const Center(child: CircularProgressIndicator()),
                   );
                 },
               ),
             ),
             Padding(
-              padding: EdgeInsets.all(8),
+              padding: const EdgeInsets.all(8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
-                  SizedBox(height: 5),
+                  Text(
+                    'Category: $category',
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    title,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 5),
                   Text(
                     price,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Color(0xFFFFA7B3),
                       fontWeight: FontWeight.bold,
                     ),

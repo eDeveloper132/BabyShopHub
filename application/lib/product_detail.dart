@@ -3,8 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:flutter/foundation.dart'; // For kDebugMode
-import 'package:flutter/services.dart'; // For RawKeyboardListener
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'ProductProviders/singleProvider.dart';
 import 'ProductProviders/provider.dart';
 import '../Types/Product_Type.dart';
@@ -24,10 +24,26 @@ class ProductDetailScreenState extends State<ProductDetailScreen> {
   bool _isFullScreen = false;
   String? _videoUrl;
 
+  Future<List<Products>> _getProductsFuture(String? category) {
+    switch (category) {
+      case 'Outfits':
+        return ProductService.fetchOutfits();
+      case 'Toys':
+        return ProductService.fetchToys();
+      case 'Watches':
+        return ProductService.fetchWatches();
+      case 'Innerwears':
+        return ProductService.fetchInnerwear();
+      default:
+        return Future.error('Invalid category');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final productId =
-        Provider.of<SingleServiceProvider>(context).selectedProductId;
+    final provider = Provider.of<SingleServiceProvider>(context);
+    final productId = provider.selectedProductId;
+    final category = provider.selectedCategory;
 
     return RawKeyboardListener(
       focusNode: FocusNode(),
@@ -43,7 +59,7 @@ class ProductDetailScreenState extends State<ProductDetailScreen> {
       child: Scaffold(
         appBar: AppBar(title: const Text("Product Details")),
         body: FutureBuilder<List<Products>>(
-          future: ProductService.fetchProducts(),
+          future: _getProductsFuture(category),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
@@ -52,14 +68,15 @@ class ProductDetailScreenState extends State<ProductDetailScreen> {
             } else if (snapshot.hasData) {
               Products? product = snapshot.data?.firstWhere(
                 (p) => p.sId == productId,
+                orElse:
+                    () => Products(), // Return an empty product if not found
               );
-              if (product == null) {
+              if (product?.sId == null) {
                 return const Center(child: Text('Product not found'));
               }
 
-              // Separate image URLs
               List<String> imageUrls =
-                  product.images != null
+                  product!.images != null
                       ? product.images!
                           .map(
                             (img) => ProductService.getSanityImageUrl(
@@ -70,7 +87,6 @@ class ProductDetailScreenState extends State<ProductDetailScreen> {
                           .toList()
                       : [];
 
-              // Get video URL
               _videoUrl =
                   product.video != null && product.video!.asset?.sRef != null
                       ? ProductService.getSanityVideoUrl(
@@ -88,7 +104,6 @@ class ProductDetailScreenState extends State<ProductDetailScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Carousel for images only
                       if (imageUrls.isNotEmpty)
                         ClipRRect(
                           borderRadius: BorderRadius.circular(10),
@@ -141,10 +156,7 @@ class ProductDetailScreenState extends State<ProductDetailScreen> {
                           color: Colors.grey.shade200,
                           child: const Icon(Icons.image_not_supported),
                         ),
-
                       const SizedBox(height: 10),
-
-                      // Video section
                       if (_videoUrl != null)
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -200,9 +212,7 @@ class ProductDetailScreenState extends State<ProductDetailScreen> {
                                 ),
                           ],
                         ),
-
                       const SizedBox(height: 10),
-
                       Text(
                         product.title ?? 'No Title',
                         style: const TextStyle(
@@ -212,7 +222,7 @@ class ProductDetailScreenState extends State<ProductDetailScreen> {
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        "Price: Rs. ${product.price.toString()}",
+                        "Price: Rs. ${product.price?.toString() ?? 'N/A'}",
                         style: const TextStyle(
                           fontSize: 18,
                           color: Colors.green,
@@ -299,6 +309,7 @@ class ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 }
 
+// ControlledVideoPlayer remains unchanged
 class ControlledVideoPlayer extends StatefulWidget {
   final String url;
 
@@ -337,7 +348,7 @@ class ControlledVideoPlayerState extends State<ControlledVideoPlayer> {
       videoPlayerController: _videoPlayerController,
       autoPlay: false,
       looping: false,
-      allowFullScreen: false, // Remove full-screen button
+      allowFullScreen: false,
       allowMuting: true,
       showControls: true,
     );

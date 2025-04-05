@@ -5,10 +5,82 @@ import 'dart:convert';
 class ProductService {
   // URL of the API to fetch products
   static const String _apiUrl =
-      'https://baby-shop-hub-two.vercel.app/api/shoes';
+      'https://baby-shop-hub-two.vercel.app/api/outfits';
+  static const String _apiUrl_2 =
+      'https://baby-shop-hub-two.vercel.app/api/innerwears';
+  static const String _apiUrl_3 =
+      'https://baby-shop-hub-two.vercel.app/api/toys';
+  static const String _apiUrl_4 =
+      'https://baby-shop-hub-two.vercel.app/api/watches';
+  static const String _apiUrl_5 =
+      'https://baby-shop-hub-two.vercel.app/api/slider';
+
+  static Future<List<Products>> fetchSlider() async {
+    try {
+      final response = await http.get(Uri.parse(_apiUrl_5));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = json.decode(response.body);
+        return jsonData.map((item) => Products.fromJson(item)).toList();
+      } else {
+        throw Exception('Failed to load products: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching products: $e');
+      throw Exception('Error fetching products: $e');
+    }
+  }
+
+  static Future<List<Products>> fetchWatches() async {
+    try {
+      final response = await http.get(Uri.parse(_apiUrl_4));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = json.decode(response.body);
+        return jsonData.map((item) => Products.fromJson(item)).toList();
+      } else {
+        throw Exception('Failed to load products: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching products: $e');
+      throw Exception('Error fetching products: $e');
+    }
+  }
+
+  static Future<List<Products>> fetchToys() async {
+    try {
+      final response = await http.get(Uri.parse(_apiUrl_3));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = json.decode(response.body);
+        return jsonData.map((item) => Products.fromJson(item)).toList();
+      } else {
+        throw Exception('Failed to load products: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching products: $e');
+      throw Exception('Error fetching products: $e');
+    }
+  }
+
+  static Future<List<Products>> fetchInnerwear() async {
+    try {
+      final response = await http.get(Uri.parse(_apiUrl_2));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = json.decode(response.body);
+        return jsonData.map((item) => Products.fromJson(item)).toList();
+      } else {
+        throw Exception('Failed to load products: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching products: $e');
+      throw Exception('Error fetching products: $e');
+    }
+  }
 
   // Fetch products data from the API
-  static Future<List<Products>> fetchProducts() async {
+  static Future<List<Products>> fetchOutfits() async {
     try {
       final response = await http.get(Uri.parse(_apiUrl));
 
@@ -55,7 +127,7 @@ class ProductService {
   static Future<Map<String, List<String>>> fetchMediaUrls() async {
     try {
       // Fetch products first
-      final productsList = await fetchProducts();
+      final productsList = await fetchOutfits();
 
       // Lists to store URLs
       List<String> imageUrls = [];

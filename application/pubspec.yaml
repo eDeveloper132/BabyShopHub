@@ -80,6 +80,10 @@ flutter:
     - assets/dress.jpg
     - assets/toy.jpg
     - assets/shoes.jpg
+    - assets/Innerwear.jpg
+    - assets/watch.jpg
+    - assets/toyr.png
+    - assets/outfit.jpg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
